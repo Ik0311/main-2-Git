@@ -49,6 +49,10 @@ boolean nivelTerminado = false;
 ArrayList<Gema> gemas;
 int score = 0;
 
+// = OBSTÁCULOS
+ArrayList<Obstaculo> obstaculos;
+float probObstaculo = 0.3f; // 30% de probabilidad de que aparezca uno por plataforma
+
 // = SETUP 
 void setup() {
   size(1600, 900);
@@ -113,7 +117,10 @@ void iniciarJuego() {
   plataformas = new ArrayList<Plataforma>();
   generarNivel();
   gemas = new ArrayList<Gema>();
-  generarGemas(); // ✅ se generan aquí (ya todo está listo)
+  generarGemas();
+  obstaculos = new ArrayList<Obstaculo>();
+  generarObstaculos();
+
 }
 
 // = JUEGO 
@@ -147,6 +154,8 @@ if (!nivelTerminado) {
   }
   dibujarJugador();
   dibujarGemas();
+  dibujarObstaculos();
+  verificarColisionObstaculos();
 
   // Mostrar UI
   mostrarHUD();
@@ -288,6 +297,34 @@ void generarPlataformasProcedural() {
     Plataforma p = plataformas.get(i);
     if (p.x + p.w < camX - width) {
       plataformas.remove(i);
+    }
+  }
+}
+
+void generarObstaculos() {
+  obstaculos.clear();
+  for (Plataforma p : plataformas) {
+    if (random(1) < probObstaculo) {
+      float ox = p.x + random(0, p.w);
+      float oy = p.y - 30; // un poco encima de la plataforma
+      obstaculos.add(new Obstaculo(ox, oy, 20));
+    }
+  }
+}
+
+void dibujarObstaculos() {
+  for (Obstaculo o : obstaculos) {
+    o.dibujar();
+  }
+}
+
+void verificarColisionObstaculos() {
+  for (Obstaculo o : obstaculos) {
+    float d = dist(px, py, o.pos.x, o.pos.y);
+    if (d < o.radio + 15) { // contacto con el jugador
+      vida--;
+      obstaculos.remove(o);
+      break;
     }
   }
 }

@@ -36,17 +36,22 @@ void moverJugador() {
 
    // Colisión con el suelo (daño si cae demasiado)
   if (py > height - 20f) {
-    if (!invulnerable) {
-      vida--;
-      invulnerable = true;
-      ultimoHit = millis();
-    }
-  py = height - 50f; // lo reposiciona
-  vy = 0f;
+  if (!invulnerable) {
+    vida--;
+    invulnerable = true;
+    ultimoHit = millis();
+
+    // Rebote al recibir daño
+    vy = -12f; // rebote hacia arriba
+  }
+
+  // Evita que se hunda
+  py = height - 50f;
   enSuelo = true;
 } else {
   enSuelo = false;
 }
+
 
 // Desactivar invulnerabilidad tras un tiempo
 if (invulnerable && millis() - ultimoHit > tiempoInvul) {
