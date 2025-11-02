@@ -106,35 +106,44 @@ void setup() {
   // CARGAR JUGADOR
   cargarJugador();
 
-  // Botón JUGAR
-  ui.addButton("JUGAR")
-    .setPosition(width/2 - 75, 495)
-    .setSize(150, 40)
-    .setColorBackground(color(0, 0, 0, 0))
-    .setColorForeground(color(0, 0, 0, 0))
-    .setColorActive(color(0, 0, 0, 0))
-    .setLabel("")
-    .getCaptionLabel().setVisible(false);
-    
-    // Botón CRÉDITOS
-  ui.addButton("CREDITOS")
-    .setPosition(width/2 - 75, 595) // debajo del botón JUGAR
-    .setSize(150, 40)
-    .setColorBackground(color(0, 0, 0, 0))
-    .setColorForeground(color(0, 0, 0, 0))
-    .setColorActive(color(0, 0, 0, 0))
-    .setLabel("")
-    .getCaptionLabel().setVisible(false);
+// === BOTONES DEL MENÚ === //Esto son los botones hay que ajustarlos 
 
-  // Botón SALIR
-  ui.addButton("SALIR")
-    .setPosition(width/2 - 75, 695)
-    .setSize(150, 40)
-    .setColorBackground(color(0, 0, 0, 0))
-    .setColorForeground(color(0, 0, 0, 0))
-    .setColorActive(color(0, 0, 0, 0))
-    .setLabel("")
-    .getCaptionLabel().setVisible(false);
+// --- Botón JUGAR ---
+Button btnJugar = ui.addButton("JUGAR")
+  .setPosition(width/2 - imgEmpezar.width/2, 495)
+  .setSize(imgEmpezar.width, imgEmpezar.height)
+  .setImage(imgEmpezar)
+  .onClick(b -> {
+    enMenu = false;
+    iniciarJuego();
+  });
+
+// --- Botón CRÉDITOS ---
+Button btnCreditos = ui.addButton("CREDITOS")
+  .setPosition(width/2 - imgCreditos.width/2, 595)
+  .setSize(imgCreditos.width, imgCreditos.height)
+  .setImage(imgCreditos)
+  .onClick(b -> {
+    // Por ahora no hace nada
+  });
+
+// --- Botón SALIR ---
+Button btnSalir = ui.addButton("SALIR")
+  .setPosition(width/2 - imgSalir.width/2, 695)
+  .setSize(imgSalir.width, imgSalir.height)
+  .setImage(imgSalir)
+  .onClick(b -> exit());
+
+// --- Quitar color de fondo y texto ---
+for (ControllerInterface<?> c : ui.getAll()) {
+  if (c instanceof Button) {
+    Button b = (Button) c;
+    b.setColorBackground(color(0, 0));
+    b.setColorForeground(color(0, 0));
+    b.setColorActive(color(0, 0));
+    b.getCaptionLabel().setVisible(false);
+  }
+}
 
   // Slider de gravedad
   ui.addSlider("grav")
@@ -145,16 +154,6 @@ void setup() {
     .setLabel("")
     .getCaptionLabel().setVisible(false);
 
-    for (ControllerInterface<?> c : ui.getAll()) {
-  if (c instanceof Button) {
-    Button b = (Button) c;
-    b.setColorBackground(color(0, 0));  // fondo invisible
-    b.setColorForeground(color(0, 0));  // sin resalte
-    b.setColorActive(color(0, 0));      // sin color al presionar
-    b.getCaptionLabel().setVisible(false); // oculta texto
-    b.hideBackground();                 // elimina dibujo base del botón
-  }
-}
 
   generarAsteroidesIniciales();
 }
@@ -170,6 +169,10 @@ void controlEvent(ControlEvent theEvent) {
     if (theEvent.getController().getName().equals("SALIR")) {
       println("Botón SALIR presionado");
       exit();
+    }
+    if (theEvent.getController().getName().equals("CREDITOS")) {
+    println("Botón CRÉDITOS presionado (sin acción por ahora)");
+    // No hace nada todavía
     }
   }
 }
@@ -188,7 +191,7 @@ void draw() {
 
 void mostrarMenu() {
   background(10, 20, 35);
-  
+  //Estas son solo las imagenes del menu arriba estan los botones puedes solo dejar el (//) los condicioales de aqui para quitar las imagenes y ajustas los botones
   if (imgBack != null) {
     imageMode(CORNER);
     image(imgBack, 0, 0, width, height);
@@ -196,27 +199,27 @@ void mostrarMenu() {
   
   if (imgTitulo != null) {
     imageMode(CENTER);
-    image(imgTitulo, width/2, 250, imgTitulo.width * 0.5, imgTitulo.height * 0.5);
+    image(imgTitulo, width/2, 250, imgTitulo.width * 0.5f, imgTitulo.height * 0.5f);
   }
   
   if (imgEmpezar != null) {
     imageMode(CENTER);
-    image(imgEmpezar, width/2, 515, imgEmpezar.width * 0.35, imgEmpezar.height * 0.35);
+   image(imgEmpezar, width/2, 515, imgEmpezar.width * 0.35f, imgEmpezar.height * 0.35f);
   }
   
   if (imgCreditos != null) {
   imageMode(CENTER);
-  image(imgCreditos, width/2, 615, imgCreditos.width * 0.35, imgCreditos.height * 0.35);
+  image(imgCreditos, width/2, 615, imgCreditos.width * 0.35f, imgCreditos.height * 0.35f);
   }
   
   if (imgSalir != null) {
     imageMode(CENTER);
-    image(imgSalir, width/2, 715, imgSalir.width * 0.35, imgSalir.height * 0.35);
+    image(imgSalir, width/2, 715, imgSalir.width * 0.35f, imgSalir.height * 0.35f);
   }
   
   if (imgGravedad != null) {
     imageMode(CORNER);
-    image(imgGravedad, 50, 775, imgGravedad.width * 0.6, imgGravedad.height * 0.6);
+    image(imgGravedad, 50, 775, imgGravedad.width * 0.6f, imgGravedad.height * 0.6f);
   }
 }
 
@@ -306,6 +309,7 @@ void jugar() {
     
     dibujarJugador();
     dibujarGemas();
+    verificarRecoleccion(); 
     dibujarObstaculos();
     verificarColisionObstaculos();
 
@@ -361,9 +365,9 @@ void dibujarMeta() {
   
   // Animación de aparición
   if (!metaAnimacionCompleta) {
-    metaAnimacion += 0.02;
-    if (metaAnimacion >= 1.0) {
-      metaAnimacion = 1.0;
+    metaAnimacion += 0.02f;
+    if (metaAnimacion >= 1.0f) {
+      metaAnimacion = 1.0f;
       metaAnimacionCompleta = true;
     }
   }
@@ -371,14 +375,14 @@ void dibujarMeta() {
   float escalaAnimacion = easeOutElastic(metaAnimacion);
   float alphaAnimacion = metaAnimacion * 255;
   
-  float tiempo = millis() * 0.001;
+  float tiempo = millis() * 0.001f;
   
   colorMode(HSB, 360, 100, 100, 255);
   
   // Tonos de morado que cambian suavemente
-  float hueBase = 280 + sin(tiempo * 0.5) * 20; // 260-300 (morado)
-  float hue2 = 260 + cos(tiempo * 0.7) * 25;
-  float hue3 = 290 + sin(tiempo * 0.3) * 15;
+  float hueBase = 280 + sin(tiempo * 0.5f) * 20; // 260-300 (morado)
+  float hue2 = 260 + cos(tiempo * 0.7f) * 25;
+  float hue3 = 290 + sin(tiempo * 0.3f) * 15;
   
   // Centro del portal circular
   float centroX = metaX + metaAncho / 2;
@@ -391,9 +395,9 @@ void dibujarMeta() {
   translate(-centroX, -centroY);
   
   // Explosión inicial de partículas
-  if (metaAnimacion < 1.0) {
+  if (metaAnimacion < 1.0f) {
     for (int i = 0; i < 50; i++) {
-      float angulo = (i / 50.0) * TWO_PI;
+      float angulo = (i / 50.0f) * TWO_PI;
       float distancia = metaAnimacion * 400;
       float x = centroX + cos(angulo) * distancia;
       float y = centroY + sin(angulo) * distancia;
@@ -408,7 +412,7 @@ void dibujarMeta() {
   // Ondas de energía expansivas circulares
   for (int onda = 0; onda < 5; onda++) {
     float offsetOnda = (tiempo * 100 + onda * 60) % 400;
-    float alphaOnda = map(offsetOnda, 0, 400, 150, 0) * (alphaAnimacion / 255.0);
+    float alphaOnda = map(offsetOnda, 0, 400, 150, 0) * (alphaAnimacion / 255.0f);
     
     noFill();
     strokeWeight(4);
@@ -416,8 +420,8 @@ void dibujarMeta() {
     ellipse(centroX, centroY, offsetOnda, offsetOnda);
     
     strokeWeight(2);
-    stroke(hue2, 80, 95, (int)(alphaOnda * 0.6));
-    ellipse(centroX, centroY, offsetOnda * 0.8, offsetOnda * 0.8);
+    stroke(hue2, 80, 95, (int)(alphaOnda * 0.6f));
+    ellipse(centroX, centroY, offsetOnda * 0.8f, offsetOnda * 0.8f);
   }
   
   // Vórtice en espiral (más denso)
@@ -425,27 +429,27 @@ void dibujarMeta() {
   translate(centroX, centroY);
   
   for (int espiral = 0; espiral < 50; espiral++) {
-    float anguloEspiral = tiempo * 2 + espiral * 0.25;
-    float radioEspiral = (espiral / 50.0) * radioPortal;
+    float anguloEspiral = tiempo * 2 + espiral * 0.25f;
+    float radioEspiral = (espiral / 50.0f) * radioPortal;
     float x = cos(anguloEspiral) * radioEspiral;
     float y = sin(anguloEspiral) * radioEspiral;
     
     float hue = (hue3 + espiral * 5) % 40 + 260;
-    float tamaño = 25 - (espiral / 50.0) * 20;
+    float tamaño = 25 - (espiral / 50.0f) * 20;
     
     noStroke();
-    fill(hue, 90, 95, (int)(220 * alphaAnimacion / 255.0));
+    fill(hue, 90, 95, (int)(220 * alphaAnimacion / 255.0f));
     ellipse(x, y, tamaño, tamaño);
     
-    fill(hue, 70, 100, (int)(180 * alphaAnimacion / 255.0));
-    ellipse(x, y, tamaño * 0.6, tamaño * 0.6);
+    fill(hue, 70, 100, (int)(180 * alphaAnimacion / 255.0f));
+    ellipse(x, y, tamaño * 0.6f, tamaño * 0.6f);
   }
   
   popMatrix();
   
   // Partículas orbitando en círculo
   for (int i = 0; i < 30; i++) {
-    float angulo = (tiempo + i * 0.2) % TWO_PI;
+    float angulo = (tiempo + i * 0.2f) % TWO_PI;
     float radio = radioPortal + sin(tiempo * 3 + i) * 40;
     float particleX = centroX + cos(angulo) * radio;
     float particleY = centroY + sin(angulo) * radio;
@@ -453,11 +457,11 @@ void dibujarMeta() {
     float hue = (hueBase + i * 10) % 40 + 260;
     
     noStroke();
-    fill(hue, 80, 100, (int)(200 * alphaAnimacion / 255.0));
+    fill(hue, 80, 100, (int)(200 * alphaAnimacion / 255.0f));
     ellipse(particleX, particleY, tamaño, tamaño);
     
-    fill(0, 0, 100, (int)(250 * alphaAnimacion / 255.0));
-    ellipse(particleX, particleY, tamaño * 0.5, tamaño * 0.5);
+    fill(0, 0, 100, (int)(250 * alphaAnimacion / 255.0f));
+    ellipse(particleX, particleY, tamaño * 0.5f, tamaño * 0.5f);
   }
   
   // Anillos giratorios concéntricos
@@ -465,10 +469,10 @@ void dibujarMeta() {
   translate(centroX, centroY);
   for (int anillo = 0; anillo < 4; anillo++) {
     pushMatrix();
-    rotate(tiempo * (anillo + 1) * 0.4);
+    rotate(tiempo * (anillo + 1) * 0.4f);
     noFill();
     strokeWeight(3);
-    stroke(hueBase + anillo * 10, 75, 95, (int)(150 * alphaAnimacion / 255.0));
+    stroke(hueBase + anillo * 10, 75, 95, (int)(150 * alphaAnimacion / 255.0f));
     ellipse(0, 0, radioPortal - anillo * 30, radioPortal - anillo * 30);
     
     // Puntos brillantes en los anillos
@@ -479,7 +483,7 @@ void dibujarMeta() {
       float py = sin(anguloPunto) * radioPunto;
       
       noStroke();
-      fill(hueBase + anillo * 10, 80, 100, (int)(200 * alphaAnimacion / 255.0));
+      fill(hueBase + anillo * 10, 80, 100, (int)(200 * alphaAnimacion / 255.0f));
       ellipse(px, py, 8, 8);
     }
     popMatrix();
@@ -489,41 +493,41 @@ void dibujarMeta() {
   // Borde principal del portal circular
   noFill();
   strokeWeight(12);
-  stroke(hueBase, 70, 100, (int)(220 * alphaAnimacion / 255.0));
+  stroke(hueBase, 70, 100, (int)(220 * alphaAnimacion / 255.0f));
   ellipse(centroX, centroY, radioPortal * 2, radioPortal * 2);
   
   strokeWeight(8);
-  stroke(hue2, 80, 95, (int)(240 * alphaAnimacion / 255.0));
+  stroke(hue2, 80, 95, (int)(240 * alphaAnimacion / 255.0f));
   ellipse(centroX, centroY, radioPortal * 2, radioPortal * 2);
   
   strokeWeight(4);
-  stroke(0, 0, 100, (int)(255 * alphaAnimacion / 255.0));
+  stroke(0, 0, 100, (int)(255 * alphaAnimacion / 255.0f));
   ellipse(centroX, centroY, radioPortal * 2, radioPortal * 2);
   
   // Glow exterior
   for (int i = 0; i < 3; i++) {
     strokeWeight(2);
-    stroke(hueBase, 60, 90, (int)(50 * alphaAnimacion / 255.0));
+    stroke(hueBase, 60, 90, (int)(50 * alphaAnimacion / 255.0f));
     ellipse(centroX, centroY, radioPortal * 2 + i * 20, radioPortal * 2 + i * 20);
   }
   
   // Núcleo oscuro central
   noStroke();
-  fill(0, 0, 5, (int)(200 * alphaAnimacion / 255.0));
-  ellipse(centroX, centroY, radioPortal * 0.6, radioPortal * 0.6);
+  fill(0, 0, 5, (int)(200 * alphaAnimacion / 255.0f));
+  ellipse(centroX, centroY, radioPortal * 0.6f, radioPortal * 0.6f);
   
   // Brillo en el núcleo
-  fill(hue3, 70, 80, (int)(150 * alphaAnimacion / 255.0));
-  ellipse(centroX, centroY, radioPortal * 0.4, radioPortal * 0.4);
+  fill(hue3, 70, 80, (int)(150 * alphaAnimacion / 255.0f));
+  ellipse(centroX, centroY, radioPortal * 0.4f, radioPortal * 0.4f);
   
   // Destellos de luz cruzados
   pushMatrix();
   translate(centroX, centroY);
-  rotate(tiempo * 0.5);
+  rotate(tiempo * 0.5f);
   strokeWeight(3);
-  stroke(0, 0, 100, (int)(180 * alphaAnimacion / 255.0));
-  line(-radioPortal * 0.3, 0, radioPortal * 0.3, 0);
-  line(0, -radioPortal * 0.3, 0, radioPortal * 0.3);
+  stroke(0, 0, 100, (int)(180 * alphaAnimacion / 255.0f));
+  line(-radioPortal * 0.3f, 0, radioPortal * 0.3f, 0);
+  line(0, -radioPortal * 0.3f, 0, radioPortal * 0.3f);
   popMatrix();
   
   // Texto flotante con efecto
@@ -531,14 +535,14 @@ void dibujarMeta() {
   textSize(56);
   float textoY = centroY + sin(tiempo * 2) * 15;
   
-  fill(0, 0, 0, (int)(180 * alphaAnimacion / 255.0));
+  fill(0, 0, 0, (int)(180 * alphaAnimacion / 255.0f));
   text("PORTAL", centroX + 4, textoY + 4);
   
   fill(hueBase, 60, 100, (int)(alphaAnimacion));
   text("PORTAL", centroX, textoY);
   
   textSize(28);
-  fill(0, 0, 100, (int)(240 * alphaAnimacion / 255.0));
+  fill(0, 0, 100, (int)(240 * alphaAnimacion / 255.0f));
   text("¡Entra!", centroX, textoY + 50);
   
   popMatrix();
@@ -552,7 +556,7 @@ float easeOutElastic(float t) {
   float c4 = (2 * PI) / 3;
   if (t == 0) return 0;
   if (t == 1) return 1;
-  return pow(2, -10 * t) * sin((t * 10 - 0.75) * c4) + 1;
+  return pow(2, -10 * t) * sin((t * 10 - 0.75f) * c4) + 1;
 }
 
 void verificarLlegadaMeta() {
@@ -636,7 +640,7 @@ void mostrarHUD() {
 void dibujarCorazonHUD(float x, float y, float tamaño) {
   pushMatrix();
   translate(x, y);
-  scale(tamaño / 10.0);
+  scale(tamaño / 10.0f);
   
   beginShape();
   vertex(0, 2);
