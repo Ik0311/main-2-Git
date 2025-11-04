@@ -1,5 +1,5 @@
 // ============================================
-// PLATAFORMA.PDE - Plataformas espaciales con forma definida
+// PLATAFORMA.PDE 
 // ============================================
 
 class Plataforma {

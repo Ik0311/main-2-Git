@@ -1,5 +1,10 @@
 import controlP5.*;
+import ddf.minim.*;
+
 ControlP5 ui;
+Minim minim;
+AudioPlayer musicaJuego;
+
 
 // Estados
 boolean enMenu = true;
@@ -50,10 +55,10 @@ float camX = 0f;
 float camDelay = 0.1f;
 
 // Auto-scroll procedural
-float camAutoBase = 1.5f;
+float camAutoBase = 2.0f;
 float camAutoSpeed = camAutoBase;
-float camAutoMax = 6.0f;
-float camAutoIncreaseRate = 0.08f;
+float camAutoMax = 10.0f;
+float camAutoIncreaseRate = 0.10f;
 
 // Asteroides
 ArrayList<PVector> ast = new ArrayList<PVector>();
@@ -64,10 +69,11 @@ float ultAstX = 0f;
 ArrayList<Plataforma> plataformas;
 
 // NIVEL Y TIEMPO 
-int tiempoMax = 60;
+int tiempoMax = 30;
 int tiempoRestante;
 int inicioNivel;
 boolean nivelTerminado = false;
+int nivelActual = 1;
 
 // META
 float metaX = 0;
@@ -82,16 +88,17 @@ boolean metaAnimacionCompleta = false;
 // GEMAS 
 ArrayList<Gema> gemas;
 int score = 0;
+int scoreTotalAcumulado = 0;
 
 // OBSTÁCULOS
 ArrayList<Obstaculo> obstaculos;
 float probObstaculo = 0.3f;
 
 void setup() {
-  size(1600, 900);
+  fullScreen();
   ui = new ControlP5(this);
 
-  // CARGAR IMÁGENES DEL MENÚ
+  //  IMÁGENES DEL MENÚ
   imgTitulo = loadImage("menu/titulo.png");
   imgEmpezar = loadImage("menu/empezar.png");
   imgCreditos = loadImage("menu/creditos.png");
@@ -105,121 +112,34 @@ void setup() {
   
   // CARGAR JUGADOR
   cargarJugador();
-
-// === BOTONES DEL MENÚ === //Esto son los botones hay que ajustarlos 
-
-// --- Botón JUGAR ---
-Button btnJugar = ui.addButton("JUGAR")
-  .setPosition(width/2 - imgEmpezar.width/2, 495)
-  .setSize(imgEmpezar.width, imgEmpezar.height)
-  .setImage(imgEmpezar)
-  .onClick(b -> {
-    enMenu = false;
-    iniciarJuego();
-  });
-
-// --- Botón CRÉDITOS ---
-Button btnCreditos = ui.addButton("CREDITOS")
-  .setPosition(width/2 - imgCreditos.width/2, 595)
-  .setSize(imgCreditos.width, imgCreditos.height)
-  .setImage(imgCreditos)
-  .onClick(b -> {
-    // Por ahora no hace nada
-  });
-
-// --- Botón SALIR ---
-Button btnSalir = ui.addButton("SALIR")
-  .setPosition(width/2 - imgSalir.width/2, 695)
-  .setSize(imgSalir.width, imgSalir.height)
-  .setImage(imgSalir)
-  .onClick(b -> exit());
-
-// --- Quitar color de fondo y texto ---
-for (ControllerInterface<?> c : ui.getAll()) {
-  if (c instanceof Button) {
-    Button b = (Button) c;
-    b.setColorBackground(color(0, 0));
-    b.setColorForeground(color(0, 0));
-    b.setColorActive(color(0, 0));
-    b.getCaptionLabel().setVisible(false);
-  }
-}
-
-  // Slider de gravedad
-  ui.addSlider("grav")
-    .setPosition(50, 810)
-    .setSize(150, 15)
-    .setRange(0.1f, 1.0f)
-    .setValue(0.5f)
-    .setLabel("")
-    .getCaptionLabel().setVisible(false);
-
+  
+ 
+  configurarBotonesMenu();
 
   generarAsteroidesIniciales();
-}
+    // === MÚSICA DEL JUEGO ===
+  minim = new Minim(this);
+  musicaJuego = minim.loadFile("juego.mp3");
+  musicaJuego.loop(); 
 
-void controlEvent(ControlEvent theEvent) {
-  if (theEvent.isController()) {
-    if (theEvent.getController().getName().equals("JUGAR")) {
-      println("Botón JUGAR presionado");
-      enMenu = false;
-      ui.hide();
-      iniciarJuego();
-    }
-    if (theEvent.getController().getName().equals("SALIR")) {
-      println("Botón SALIR presionado");
-      exit();
-    }
-    if (theEvent.getController().getName().equals("CREDITOS")) {
-    println("Botón CRÉDITOS presionado (sin acción por ahora)");
-    // No hace nada todavía
-    }
-  }
 }
 
 void draw() {
   background(10, 20, 35);
 
   if (enMenu) {
-    mostrarMenu();
+    if (enPantallaCreditos) {
+      mostrarPantallaCreditos();
+    } else if (enPantallaTutorial) {
+      mostrarPantallaTutorial();
+    } else {
+      mostrarMenuPrincipal();
+      manejarClicsMenu(); 
+    }
   } else if (enPeleaJefe) {
     actualizarPeleaJefe();
   } else {
     jugar();
-  }
-}
-
-void mostrarMenu() {
-  background(10, 20, 35);
-  //Estas son solo las imagenes del menu arriba estan los botones puedes solo dejar el (//) los condicioales de aqui para quitar las imagenes y ajustas los botones
-  if (imgBack != null) {
-    imageMode(CORNER);
-    image(imgBack, 0, 0, width, height);
-  }
-  
-  if (imgTitulo != null) {
-    imageMode(CENTER);
-    image(imgTitulo, width/2, 250, imgTitulo.width * 0.5f, imgTitulo.height * 0.5f);
-  }
-  
-  if (imgEmpezar != null) {
-    imageMode(CENTER);
-   image(imgEmpezar, width/2, 515, imgEmpezar.width * 0.35f, imgEmpezar.height * 0.35f);
-  }
-  
-  if (imgCreditos != null) {
-  imageMode(CENTER);
-  image(imgCreditos, width/2, 615, imgCreditos.width * 0.35f, imgCreditos.height * 0.35f);
-  }
-  
-  if (imgSalir != null) {
-    imageMode(CENTER);
-    image(imgSalir, width/2, 715, imgSalir.width * 0.35f, imgSalir.height * 0.35f);
-  }
-  
-  if (imgGravedad != null) {
-    imageMode(CORNER);
-    image(imgGravedad, 50, 775, imgGravedad.width * 0.6f, imgGravedad.height * 0.6f);
   }
 }
 
@@ -241,6 +161,8 @@ void iniciarJuego() {
   llegoALaMeta = false;
   metaAnimacion = 0;
   metaAnimacionCompleta = false;
+  nivelActual = 1;
+  scoreTotalAcumulado = 0;
 
   generarAsteroidesIniciales();
   plataformas = new ArrayList<Plataforma>();
@@ -255,6 +177,45 @@ void iniciarJuego() {
   nivelTerminado = false;
   
   println("Juego iniciado!");
+}
+
+void siguienteNivel() {
+  println("¡Pasando al nivel " + (nivelActual + 1) + "!");
+  
+  nivelActual++;
+  scoreTotalAcumulado += score;
+  
+  px = 100f;
+  py = 300f;
+  vx = 0f;
+  vy = 0f;
+  camX = 0f;
+  camAutoSpeed = camAutoBase + (nivelActual - 1) * 0.3f;
+  camAutoMax = 6.0f + (nivelActual - 1) * 0.5f;
+  hook.set(0,0);
+  lenCuerda = 0;
+  ganchoAct = false;
+  score = 0;
+  vida = vidaMax;
+  metaCreada = false;
+  llegoALaMeta = false;
+  metaAnimacion = 0;
+  metaAnimacionCompleta = false;
+
+  generarAsteroidesIniciales();
+  plataformas = new ArrayList<Plataforma>();
+  generarNivel();
+  gemas = new ArrayList<Gema>();
+  generarGemas();
+  obstaculos = new ArrayList<Obstaculo>();
+  generarObstaculos();
+
+  inicioNivel = millis();
+  tiempoRestante = tiempoMax;
+  nivelTerminado = false;
+  enPeleaJefe = false;
+  
+  println("¡Nivel " + nivelActual + " iniciado!");
 }
 
 void jugar() {
@@ -330,10 +291,11 @@ void jugar() {
     
     fill(255);
     textSize(32);
-    text("Puntaje: " + score, camX + width / 2f, height / 2f + 20);
+    text("Nivel: " + nivelActual, camX + width / 2f, height / 2f);
+    text("Puntaje: " + score, camX + width / 2f, height / 2f + 40);
     
     textSize(24);
-    text("Presiona ESPACIO para enfrentar al JEFE", camX + width / 2f, height / 2f + 80);
+    text("Presiona ESPACIO para enfrentar al JEFE", camX + width / 2f, height / 2f + 100);
 
     popMatrix();
   } else {
@@ -341,15 +303,19 @@ void jugar() {
   }
 
   fill(255);
+  textAlign(LEFT);
+  textSize(20);
+  text("Nivel: " + nivelActual, camX + width - 150, 30);
+  
   textAlign(RIGHT);
   textSize(24);
-  text("Gemas: " + score, camX + width - 50, 40);
+  text("Gemas: " + score, camX + width - 50, 60);
 }
 
 void crearMeta() {
   if (plataformas.size() > 0) {
     Plataforma ultima = plataformas.get(plataformas.size() - 1);
-    metaX = ultima.x + ultima.w + 300;
+    metaX = ultima.x + ultima.w + 100;
     metaY = 0;
     metaAncho = 150;
     metaAlto = height;
@@ -363,7 +329,6 @@ void crearMeta() {
 void dibujarMeta() {
   pushStyle();
   
-  // Animación de aparición
   if (!metaAnimacionCompleta) {
     metaAnimacion += 0.02f;
     if (metaAnimacion >= 1.0f) {
@@ -379,22 +344,19 @@ void dibujarMeta() {
   
   colorMode(HSB, 360, 100, 100, 255);
   
-  // Tonos de morado que cambian suavemente
-  float hueBase = 280 + sin(tiempo * 0.5f) * 20; // 260-300 (morado)
-  float hue2 = 260 + cos(tiempo * 0.7f) * 25;
-  float hue3 = 290 + sin(tiempo * 0.3f) * 15;
+  float hueBase = obtenerColorNivel() + sin(tiempo * 0.5f) * 20;
+  float hue2 = obtenerColorNivel() - 20 + cos(tiempo * 0.7f) * 25;
+  float hue3 = obtenerColorNivel() + 10 + sin(tiempo * 0.3f) * 15;
   
-  // Centro del portal circular
   float centroX = metaX + metaAncho / 2;
   float centroY = height / 2;
-  float radioPortal = 200; // Radio del portal circular
+  float radioPortal = 200;
   
   pushMatrix();
   translate(centroX, centroY);
   scale(escalaAnimacion);
   translate(-centroX, -centroY);
   
-  // Explosión inicial de partículas
   if (metaAnimacion < 1.0f) {
     for (int i = 0; i < 50; i++) {
       float angulo = (i / 50.0f) * TWO_PI;
@@ -409,7 +371,6 @@ void dibujarMeta() {
     }
   }
   
-  // Ondas de energía expansivas circulares
   for (int onda = 0; onda < 5; onda++) {
     float offsetOnda = (tiempo * 100 + onda * 60) % 400;
     float alphaOnda = map(offsetOnda, 0, 400, 150, 0) * (alphaAnimacion / 255.0f);
@@ -424,7 +385,6 @@ void dibujarMeta() {
     ellipse(centroX, centroY, offsetOnda * 0.8f, offsetOnda * 0.8f);
   }
   
-  // Vórtice en espiral (más denso)
   pushMatrix();
   translate(centroX, centroY);
   
@@ -434,7 +394,7 @@ void dibujarMeta() {
     float x = cos(anguloEspiral) * radioEspiral;
     float y = sin(anguloEspiral) * radioEspiral;
     
-    float hue = (hue3 + espiral * 5) % 40 + 260;
+    float hue = (hue3 + espiral * 5) % 360;
     float tamaño = 25 - (espiral / 50.0f) * 20;
     
     noStroke();
@@ -447,14 +407,13 @@ void dibujarMeta() {
   
   popMatrix();
   
-  // Partículas orbitando en círculo
   for (int i = 0; i < 30; i++) {
     float angulo = (tiempo + i * 0.2f) % TWO_PI;
     float radio = radioPortal + sin(tiempo * 3 + i) * 40;
     float particleX = centroX + cos(angulo) * radio;
     float particleY = centroY + sin(angulo) * radio;
     float tamaño = 8 + sin(tiempo * 4 + i) * 4;
-    float hue = (hueBase + i * 10) % 40 + 260;
+    float hue = (hueBase + i * 10) % 360;
     
     noStroke();
     fill(hue, 80, 100, (int)(200 * alphaAnimacion / 255.0f));
@@ -464,7 +423,6 @@ void dibujarMeta() {
     ellipse(particleX, particleY, tamaño * 0.5f, tamaño * 0.5f);
   }
   
-  // Anillos giratorios concéntricos
   pushMatrix();
   translate(centroX, centroY);
   for (int anillo = 0; anillo < 4; anillo++) {
@@ -475,7 +433,6 @@ void dibujarMeta() {
     stroke(hueBase + anillo * 10, 75, 95, (int)(150 * alphaAnimacion / 255.0f));
     ellipse(0, 0, radioPortal - anillo * 30, radioPortal - anillo * 30);
     
-    // Puntos brillantes en los anillos
     for (int p = 0; p < 8; p++) {
       float anguloPunto = (TWO_PI / 8) * p;
       float radioPunto = (radioPortal - anillo * 30) / 2;
@@ -490,7 +447,6 @@ void dibujarMeta() {
   }
   popMatrix();
   
-  // Borde principal del portal circular
   noFill();
   strokeWeight(12);
   stroke(hueBase, 70, 100, (int)(220 * alphaAnimacion / 255.0f));
@@ -504,23 +460,19 @@ void dibujarMeta() {
   stroke(0, 0, 100, (int)(255 * alphaAnimacion / 255.0f));
   ellipse(centroX, centroY, radioPortal * 2, radioPortal * 2);
   
-  // Glow exterior
   for (int i = 0; i < 3; i++) {
     strokeWeight(2);
     stroke(hueBase, 60, 90, (int)(50 * alphaAnimacion / 255.0f));
     ellipse(centroX, centroY, radioPortal * 2 + i * 20, radioPortal * 2 + i * 20);
   }
   
-  // Núcleo oscuro central
   noStroke();
   fill(0, 0, 5, (int)(200 * alphaAnimacion / 255.0f));
   ellipse(centroX, centroY, radioPortal * 0.6f, radioPortal * 0.6f);
   
-  // Brillo en el núcleo
   fill(hue3, 70, 80, (int)(150 * alphaAnimacion / 255.0f));
   ellipse(centroX, centroY, radioPortal * 0.4f, radioPortal * 0.4f);
   
-  // Destellos de luz cruzados
   pushMatrix();
   translate(centroX, centroY);
   rotate(tiempo * 0.5f);
@@ -530,7 +482,6 @@ void dibujarMeta() {
   line(0, -radioPortal * 0.3f, 0, radioPortal * 0.3f);
   popMatrix();
   
-  // Texto flotante con efecto
   textAlign(CENTER, CENTER);
   textSize(56);
   float textoY = centroY + sin(tiempo * 2) * 15;
@@ -551,7 +502,19 @@ void dibujarMeta() {
   popStyle();
 }
 
-// Función de easing para animación elástica
+float obtenerColorNivel() {
+  int colorIndex = (nivelActual - 1) % 6;
+  switch(colorIndex) {
+    case 0: return 280;
+    case 1: return 200;
+    case 2: return 160;
+    case 3: return 120;
+    case 4: return 30;
+    case 5: return 0;
+    default: return 280;
+  }
+}
+
 float easeOutElastic(float t) {
   float c4 = (2 * PI) / 3;
   if (t == 0) return 0;
@@ -574,7 +537,8 @@ void verificarLlegadaMeta() {
 
 void generarGemas() {
   gemas.clear();
-  for (int i = 0; i < 20; i++) {
+  int cantidadGemas = 20 + nivelActual * 5;
+  for (int i = 0; i < cantidadGemas; i++) {
     float gx = random(200, 8000);
     float gy = random(200, 600);
     gemas.add(new Gema(gx, gy));
@@ -595,6 +559,13 @@ void verificarRecoleccion() {
       score++;
       gemas.remove(i);
     }
+    // Cada 10 gemas, el jugador gana una vida extra
+    if (score % 10 == 0 && score > scoreTotalAcumulado) {
+      if (vida < vidaMax) {
+      vida++;
+      }
+      scoreTotalAcumulado = score;
+    }
   }
 }
 
@@ -612,25 +583,26 @@ void mostrarHUD() {
   }
   
   text("Puntaje: " + score, camX + 50, 80);
+  text("Nivel: " + nivelActual, camX + 50, 110);
   
-  text("Vidas: ", camX + 50, 110);
+  text("Vidas: ", camX + 50, 140);
   
   for (int i = 0; i < vidaMax; i++) {
     if (i < vida) {
       fill(255, 100, 150);
-      dibujarCorazonHUD(camX + 140 + i * 35, 100, 12);
+      dibujarCorazonHUD(camX + 140 + i * 35, 130, 12);
       
       fill(255, 180, 200, 200);
-      dibujarCorazonHUD(camX + 140 + i * 35, 100, 10);
+      dibujarCorazonHUD(camX + 140 + i * 35, 130, 10);
       
       fill(255, 255, 255, 180);
-      dibujarCorazonHUD(camX + 138 + i * 35, 98, 6);
+      dibujarCorazonHUD(camX + 138 + i * 35, 128, 6);
     } else {
       fill(80, 80, 100);
-      dibujarCorazonHUD(camX + 140 + i * 35, 100, 12);
+      dibujarCorazonHUD(camX + 140 + i * 35, 130, 12);
       
       fill(60, 60, 80);
-      dibujarCorazonHUD(camX + 140 + i * 35, 100, 10);
+      dibujarCorazonHUD(camX + 140 + i * 35, 130, 10);
     }
   }
   
@@ -640,7 +612,7 @@ void mostrarHUD() {
 void dibujarCorazonHUD(float x, float y, float tamaño) {
   pushMatrix();
   translate(x, y);
-  scale(tamaño / 10.0f);
+  scale(tamaño / 5.0f);
   
   beginShape();
   vertex(0, 2);
@@ -681,6 +653,8 @@ void reiniciarNivel() {
   vx = 0;
   vy = 0;
   score = 0;
+  scoreTotalAcumulado = 0;
+  nivelActual = 1;
   vida = vidaMax;
   invulnerable = false;
   nivelTerminado = false;
@@ -705,7 +679,8 @@ void generarNivel() {
   plataformas.add(new Plataforma(50, height - 80, 200, 25));
 
   float x = 300;
-  for (int i = 0; i < 15; i++) {
+  int cantidadPlataformas = 15 + nivelActual * 2;
+  for (int i = 0; i < cantidadPlataformas; i++) {
     float ancho = random(150, 300);
     float alto = random(20, 30);
     float y = random(400, 700);
@@ -739,16 +714,34 @@ void generarPlataformasProcedural() {
       plataformas.remove(i);
     }
   }
+  // Generar obstáculos aéreos proceduralmente
+  if (random(1) < 0.1) { 
+    float ox = camX + width + random(100, 300);
+    float oy = -50;
+    obstaculos.add(new Obstaculo(ox, oy, 25));
+  }
+
 }
 
 void generarObstaculos() {
   obstaculos.clear();
+  
+  // Obstáculos en plataformas
   for (Plataforma p : plataformas) {
-    if (random(1) < probObstaculo) {
+    float probAumentada = probObstaculo + (nivelActual - 1) * 0.05f;
+    if (random(1) < probAumentada) {
       float ox = p.x + random(0, p.w);
       float oy = p.y - 30;
       obstaculos.add(new Obstaculo(ox, oy, 20));
     }
+  }
+  
+  // Obstáculos cayendo del cielo 
+  int cantidadAereos = 3 + nivelActual;
+  for (int i = 0; i < cantidadAereos; i++) {
+    float ox = random(camX + width, camX + width * 3);
+    float oy = -50;
+    obstaculos.add(new Obstaculo(ox, oy, 25));
   }
 }
 
@@ -761,16 +754,36 @@ void dibujarObstaculos() {
 void verificarColisionObstaculos() {
   for (int i = obstaculos.size() - 1; i >= 0; i--) {
     Obstaculo o = obstaculos.get(i);
+    
+   
+    if (o.fueraDePantalla(camX)) {
+      obstaculos.remove(i);
+      continue;
+    }
+    
+    // Verificar colisión
     float d = dist(px, py, o.pos.x, o.pos.y);
-    if (d < o.radio + 15) {
+    float radioColision = o.esOvni ? o.radio * 2 : o.radio + 15;
+    
+    if (d < radioColision) {
       vida--;
       obstaculos.remove(i);
+      
+      println("¡Colisión con " + (o.esOvni ? "OVNI" : "asteroide") + "!");
       break;
     }
   }
 }
 
 void keyPressed() {
+  if (key == ESC) {
+    key = 0;
+    if (enMenu) {
+      manejarTeclaEscMenu();
+    }
+    return;
+  }
+  
   if (key == 'a' || key == 'A') movIzq = true;
   if (key == 'd' || key == 'D') movDer = true;
   if (key == 'w' || key == 'W') saltar = true;
@@ -799,6 +812,17 @@ void keyPressed() {
     }
   }
 }
+
+void stop() {
+  if (musicaJuego != null) {
+    musicaJuego.close();
+  }
+  if (minim != null) {
+    minim.stop();
+  }
+  super.stop();
+}
+
 
 void keyReleased() {
   if (key == 'a' || key == 'A') movIzq = false;

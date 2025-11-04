@@ -1,19 +1,19 @@
 // ============================================
-// FONDO.PDE - Sistema de Galaxia Animada Mejorado
+// FONDO.PDE 
 // ============================================
 
 ArrayList<Particula> particulas;
 ArrayList<Cometa> cometas;
 float offsetNebulosa = 0;
 
-// ✅ INICIALIZAR GALAXIA
+float fondoCamX = 0;
+
 void inicializarGalaxia() {
   estrellas = new ArrayList<Estrella>();
   nebulosas = new ArrayList<Nebulosa>();
   particulas = new ArrayList<Particula>();
   cometas = new ArrayList<Cometa>();
   
-  // Crear estrellas
   for (int i = 0; i < 300; i++) {
     estrellas.add(new Estrella());
   }
@@ -36,10 +36,13 @@ void inicializarGalaxia() {
 
 // ✅ FUNCIÓN PARA DIBUJAR LA GALAXIA
 void dibujarGalaxia() {
+  // Sincronizar la cámara del fondo con la del juego
+  fondoCamX = camX;
+  
   pushMatrix();
   
   // Gradiente de fondo animado (cambia sutilmente con el tiempo)
-  float t = millis() * 0.00005;
+  float t = millis() * 0.0005;
   for (int i = 0; i < height; i++) {
     float inter = map(i, 0, height, 0, 1);
     
@@ -82,14 +85,14 @@ void dibujarGalaxia() {
   
   // Dibujar estrellas (encima de todo)
   for (Estrella e : estrellas) {
-    e.actualizar(camX);
+    e.actualizar();
     e.dibujar();
   }
   
   popMatrix();
 }
 
-// ✅ CLASE ESTRELLA (mejorada)
+// ✅ CLASE ESTRELLA 
 class Estrella {
   float x, y;
   float brillo;
@@ -97,9 +100,12 @@ class Estrella {
   float tamaño;
   float profundidad;
   color col;
+  float offsetInicial; 
   
   Estrella() {
-    x = random(width * 4);
+    // Distribuir estrellas en un rango más amplio
+    offsetInicial = random(-width * 2, width * 2);
+    x = offsetInicial;
     y = random(height);
     brillo = random(100, 255);
     velocidadBrillo = random(0.5, 3);
@@ -117,17 +123,26 @@ class Estrella {
     }
   }
   
-  void actualizar(float camX) {
+  void actualizar() {
+    // Animación de brillo
     brillo += velocidadBrillo;
     if (brillo > 255 || brillo < 100) {
       velocidadBrillo *= -1;
     }
     
-    float parallaxX = x - (camX * profundidad);
+    // Calcular posición con parallax
+    float parallaxX = x - (fondoCamX * profundidad);
     
-    if (parallaxX < camX - width) {
-      x = camX + width * 2;
-      y = random(height);
+    float rangoVisible = width * 3;
+    float centro = fondoCamX;
+    
+    // Si está muy a la izquierda, moverla a la derecha
+    if (parallaxX < centro - rangoVisible) {
+      x += rangoVisible * 2;
+    }
+    // Si está muy a la derecha, moverla a la izquierda
+    else if (parallaxX > centro + rangoVisible) {
+      x -= rangoVisible * 2;
     }
   }
   
@@ -136,7 +151,7 @@ class Estrella {
     noStroke();
     fill(col, brillo);
     
-    float parallaxX = x - (camX * profundidad);
+    float parallaxX = x - (fondoCamX * profundidad);
     ellipse(parallaxX, y, tamaño, tamaño);
     
     // Brillo extra para estrellas grandes
@@ -156,7 +171,6 @@ class Estrella {
   }
 }
 
-// ✅ CLASE NEBULOSA (mejorada con ondulación)
 class Nebulosa {
   float x, y;
   float tamaño;
@@ -165,9 +179,11 @@ class Nebulosa {
   float velocidadRotacion;
   float profundidad;
   float tiempoOffset;
+  float offsetInicial;
   
   Nebulosa() {
-    x = random(width * 4);
+    offsetInicial = random(-width * 2, width * 2);
+    x = offsetInicial;
     y = random(height);
     tamaño = random(200, 500);
     profundidad = random(0.05, 0.3);
@@ -209,10 +225,16 @@ class Nebulosa {
     float cambio = sin(t) * 0.02;
     col1 = lerpColor(col1, color(random(80, 220), random(30, 200), random(100, 255), 40), cambio);
     
-    float parallaxX = x - (camX * profundidad);
-    if (parallaxX < camX - width - tamaño) {
-      x = camX + width + tamaño + random(500);
-      y = random(height);
+    float parallaxX = x - (fondoCamX * profundidad);
+    
+    // Sistema de wrapping infinito
+    float rangoVisible = width * 3;
+    float centro = fondoCamX;
+    
+    if (parallaxX < centro - rangoVisible - tamaño) {
+      x += rangoVisible * 2;
+    } else if (parallaxX > centro + rangoVisible + tamaño) {
+      x -= rangoVisible * 2;
     }
   }
   
@@ -220,7 +242,7 @@ class Nebulosa {
     pushStyle();
     pushMatrix();
     
-    float parallaxX = x - (camX * profundidad);
+    float parallaxX = x - (fondoCamX * profundidad);
     
     translate(parallaxX, y);
     rotate(anguloRotacion);
@@ -246,16 +268,17 @@ class Nebulosa {
   }
 }
 
-// ✅ CLASE PARTÍCULA (polvo estelar flotante)
 class Particula {
   float x, y;
   float vx, vy;
   float tamaño;
   float profundidad;
   float alpha;
+  float offsetInicial;
   
   Particula() {
-    x = random(width * 4);
+    offsetInicial = random(-width * 2, width * 2);
+    x = offsetInicial;
     y = random(height);
     vx = random(-0.3, 0.3);
     vy = random(-0.2, 0.2);
@@ -271,12 +294,21 @@ class Particula {
     // Movimiento ondulante
     y += sin(millis() * 0.001 + x * 0.01) * 0.1;
     
-    float parallaxX = x - (camX * profundidad);
+    float parallaxX = x - (fondoCamX * profundidad);
     
-    if (parallaxX < camX - width) {
-      x = camX + width * 2;
+    // Sistema de wrapping infinito
+    float rangoVisible = width * 3;
+    float centro = fondoCamX;
+    
+    if (parallaxX < centro - rangoVisible) {
+      x += rangoVisible * 2;
+      y = random(height);
+    } else if (parallaxX > centro + rangoVisible) {
+      x -= rangoVisible * 2;
       y = random(height);
     }
+    
+    // Loop vertical
     if (y < 0) y = height;
     if (y > height) y = 0;
   }
@@ -286,7 +318,7 @@ class Particula {
     noStroke();
     fill(200, 220, 255, alpha);
     
-    float parallaxX = x - (camX * profundidad);
+    float parallaxX = x - (fondoCamX * profundidad);
     ellipse(parallaxX, y, tamaño, tamaño);
     popStyle();
   }
@@ -301,7 +333,7 @@ class Cometa {
   float vida;
   
   Cometa() {
-    x = random(camX + width * 0.5, camX + width * 2);
+    x = random(fondoCamX + width * 0.5, fondoCamX + width * 2);
     y = random(height * 0.3);
     vx = random(-8, -4);
     vy = random(2, 5);
@@ -321,7 +353,7 @@ class Cometa {
     
     vida -= 2;
     
-    if (x < camX - 100 || y > height + 100 || vida <= 0) {
+    if (x < fondoCamX - 100 || y > height + 100 || vida <= 0) {
       terminado = true;
     }
   }

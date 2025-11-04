@@ -1,5 +1,5 @@
 // ============================================
-// GANCHO.PDE - Sistema de gancho galáctico
+// GANCHO.PDE 
 // ============================================
 
 void manejarGancho() {
@@ -45,7 +45,6 @@ void manejarGancho() {
   }
 }
 
-// ✅ RAYO GALÁCTICO ESTILO NEBULOSA
 void dibujarRayoGalactico() {
   pushStyle();
   

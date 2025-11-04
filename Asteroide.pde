@@ -1,5 +1,5 @@
 // ============================================
-// ASTEROIDE.PDE - Agujeros negros galácticos animados
+// ASTEROIDE.PDE 
 // ============================================
 
 void generarAsteroidesIniciales() {
@@ -53,7 +53,6 @@ void dibujarAsteroides() {
   }
 }
 
-// ✅ AGUJERO NEGRO ESTILO GALAXIA SUAVE
 void dibujarAgujeroNegroGalactico(float x, float y, int indice) {
   pushStyle();
   pushMatrix();

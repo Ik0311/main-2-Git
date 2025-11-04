@@ -1,5 +1,5 @@
 // =========================================
-// TAB JEFE - Pelea con el jefe final mejorada
+// TAB JEFE 
 // =========================================
 
 import java.awt.Robot;
@@ -47,7 +47,6 @@ boolean jefeGameLost = false;
 float jefeMonsterHealth = 100;
 boolean jefeGameEnded = false;
 
-// Estrellas de fondo del jefe
 ArrayList<JefeBackgroundStar> jefeBackgroundStars;
 
 void iniciarPeleaJefe() {
@@ -74,7 +73,6 @@ void iniciarPeleaJefe() {
   jefeEnergyWaves.clear();
   jefeExplosionStars.clear();
   
-  // Crear estrellas de fondo
   jefeBackgroundStars = new ArrayList<JefeBackgroundStar>();
   for (int i = 0; i < 200; i++) {
     jefeBackgroundStars.add(new JefeBackgroundStar());
@@ -99,7 +97,6 @@ void iniciarPeleaJefe() {
 void actualizarPeleaJefe() {
   dibujarFondoEspacialJefe();
 
-  // Mouse/aim
   if (jefeHaveRobot) {
     PointerInfo pInfo = MouseInfo.getPointerInfo();
     if (pInfo != null) {
@@ -124,7 +121,6 @@ void actualizarPeleaJefe() {
   pushMatrix();
   translate(jefeAimX, jefeAimY);
 
-  // Monster
   if (jefeMonsterAlive) {
     jefeMonsterX += jefeMonsterSpeed * (jefeMonsterMovingRight ? 1 : -1);
     jefeMonsterY += random(-1, 1);
@@ -145,7 +141,11 @@ void actualizarPeleaJefe() {
       PImage f = jefeEnemyFrames[jefeCurrentEnemyFrame];
       float targetW = jefeMonsterBaseSize * 2;
       float scaleFactor = targetW / (float)f.width;
+      
+      tint(obtenerTinteJefeNivel());
       image(f, 0, 0, f.width * scaleFactor, f.height * scaleFactor);
+      noTint();
+      
       if (frameCount % jefeEnemyFrameDelay == 0) {
         jefeCurrentEnemyFrame = (jefeCurrentEnemyFrame + 1) % jefeEnemyFrameCount;
       }
@@ -156,11 +156,9 @@ void actualizarPeleaJefe() {
     }
     popMatrix();
 
-    // Barra de vida mejorada
     dibujarBarraVidaJefe();
   }
 
-  // Bala estrella
   if (jefeBulletActive) {
     jefeBulletY -= jefeBulletSpeed;
     jefeBulletAnimFrame += 0.3;
@@ -179,7 +177,6 @@ void actualizarPeleaJefe() {
 
     float hitRadius = (jefeMonsterBaseSize * jefeMonsterScale) / 2;
     if (jefeMonsterAlive && dist(jefeBulletX, jefeBulletY, jefeMonsterX, jefeMonsterY) < hitRadius) {
-      // ✅ EXPLOSIÓN DE ESTRELLAS
       crearExplosionEstrellas(jefeMonsterX, jefeMonsterY);
       jefeMonsterHealth -= 20;
       
@@ -198,7 +195,6 @@ void actualizarPeleaJefe() {
     }
   }
   
-  // Dibujar explosiones de estrellas
   for (int i = jefeExplosionStars.size() - 1; i >= 0; i--) {
     JefeExplosionStar s = jefeExplosionStars.get(i);
     s.update();
@@ -210,7 +206,6 @@ void actualizarPeleaJefe() {
 
   popMatrix();
 
-  // Mira
   if (jefeSightImage != null) {
     pushMatrix();
     translate(width/2, height/2);
@@ -235,9 +230,20 @@ void actualizarPeleaJefe() {
   }
 }
 
-// ✅ FONDO GALÁCTICO ANIMADO MEJORADO
+color obtenerTinteJefeNivel() {
+  int colorIndex = (nivelActual - 1) % 6;
+  switch(colorIndex) {
+    case 0: return color(200, 150, 255);
+    case 1: return color(150, 200, 255);
+    case 2: return color(150, 255, 255);
+    case 3: return color(150, 255, 150);
+    case 4: return color(255, 200, 150);
+    case 5: return color(255, 150, 150);
+    default: return color(255);
+  }
+}
+
 void dibujarFondoEspacialJefe() {
-  // Gradiente de fondo espacial profundo
   for (int i = 0; i < height; i++) {
     float inter = map(i, 0, height, 0, 1);
     int c = lerpColor(color(10, 5, 35), color(25, 5, 50), inter);
@@ -245,25 +251,20 @@ void dibujarFondoEspacialJefe() {
     line(0, i, width, i);
   }
   
-  // Nebulosas animadas
   dibujarNebulosasBoss();
   
-  // Estrellas animadas
   for (JefeBackgroundStar star : jefeBackgroundStars) {
     star.update();
     star.display();
   }
   
-  // Polvo estelar
   dibujarPolvoEstelarBoss();
 }
 
-// ✅ NEBULOSAS ANIMADAS
 void dibujarNebulosasBoss() {
   pushStyle();
   float tiempo = millis() * 0.0002;
   
-  // Nebulosa 1 - Púrpura
   for (int i = 0; i < 3; i++) {
     float offsetX = sin(tiempo + i) * 100;
     float offsetY = cos(tiempo * 0.7 + i) * 50;
@@ -273,7 +274,6 @@ void dibujarNebulosasBoss() {
     ellipse(width * 0.3 + offsetX, height * 0.3 + offsetY, 400 + i * 100, 300 + i * 80);
   }
   
-  // Nebulosa 2 - Azul
   for (int i = 0; i < 3; i++) {
     float offsetX = cos(tiempo * 0.8 + i) * 120;
     float offsetY = sin(tiempo * 0.6 + i) * 70;
@@ -283,7 +283,6 @@ void dibujarNebulosasBoss() {
     ellipse(width * 0.7 + offsetX, height * 0.5 + offsetY, 350 + i * 90, 280 + i * 70);
   }
   
-  // Nebulosa 3 - Rosa
   for (int i = 0; i < 3; i++) {
     float offsetX = sin(tiempo * 0.9 + i) * 80;
     float offsetY = cos(tiempo * 1.1 + i) * 60;
@@ -296,7 +295,6 @@ void dibujarNebulosasBoss() {
   popStyle();
 }
 
-// ✅ POLVO ESTELAR
 void dibujarPolvoEstelarBoss() {
   pushStyle();
   float tiempo = millis() * 0.0001;
@@ -315,7 +313,6 @@ void dibujarPolvoEstelarBoss() {
   popStyle();
 }
 
-// ✅ BALA EN FORMA DE ESTRELLA
 void dibujarBalaEstrella(float x, float y) {
   pushStyle();
   pushMatrix();
@@ -326,25 +323,20 @@ void dibujarBalaEstrella(float x, float y) {
   colorMode(HSB, 360, 100, 100, 255);
   float hue = (tiempo * 50) % 360;
   
-  // Aura exterior pulsante
   float pulso = sin(jefeBulletAnimFrame) * 10 + 40;
   noStroke();
   fill(hue, 70, 100, 80);
   dibujarEstrellaForma(0, 0, pulso, 10);
   
-  // Estrella principal
   fill(hue, 85, 100, 220);
   dibujarEstrellaForma(0, 0, 30, 10);
   
-  // Estrella intermedia
   fill(hue, 70, 100, 200);
   dibujarEstrellaForma(0, 0, 20, 10);
   
-  // Núcleo brillante
   fill(0, 0, 100, 255);
   ellipse(0, 0, 12, 12);
   
-  // Destellos rotantes
   rotate(-jefeBulletRotation * 2);
   strokeWeight(2);
   stroke(0, 0, 100, 200);
@@ -370,39 +362,34 @@ void dibujarEstrellaForma(float x, float y, float tamaño, int puntas) {
   endShape(CLOSE);
 }
 
-// ✅ CREAR EXPLOSIÓN DE ESTRELLAS
 void crearExplosionEstrellas(float x, float y) {
   for (int i = 0; i < 30; i++) {
     jefeExplosionStars.add(new JefeExplosionStar(x, y));
   }
 }
 
-// ✅ BARRA DE VIDA MEJORADA
 void dibujarBarraVidaJefe() {
   pushStyle();
   float barWidth = 150;
   float barHeight = 15;
   float adjustedOffset = jefeMonsterBaseSize * jefeMonsterScale;
   
-  // Fondo de la barra
   noStroke();
   fill(20, 10, 40, 220);
   rectMode(CENTER);
   rect(jefeMonsterX, jefeMonsterY - adjustedOffset - 40, barWidth + 8, barHeight + 8, 8);
   
-  // Borde brillante
   noFill();
   strokeWeight(2);
-  stroke(150, 200, 255, 180);
+  color bordeColor = obtenerTinteJefeNivel();
+  stroke(red(bordeColor), green(bordeColor), blue(bordeColor), 180);
   rect(jefeMonsterX, jefeMonsterY - adjustedOffset - 40, barWidth + 8, barHeight + 8, 8);
   
-  // Barra de vida con gradiente
   rectMode(CORNER);
   float left = jefeMonsterX - barWidth/2;
   float top = jefeMonsterY - adjustedOffset - 40 - barHeight/2;
   float healthWidth = barWidth * (jefeMonsterHealth/100.0);
   
-  // Gradiente de salud
   for (int i = 0; i < healthWidth; i++) {
     float t = i / healthWidth;
     color c1 = color(100, 255, 150);
@@ -412,7 +399,6 @@ void dibujarBarraVidaJefe() {
     line(left + i, top, left + i, top + barHeight);
   }
   
-  // Texto de salud
   fill(255);
   textAlign(CENTER);
   textSize(12);
@@ -421,29 +407,25 @@ void dibujarBarraVidaJefe() {
   popStyle();
 }
 
-// ✅ HUD MEJORADO
 void dibujarHUDJefe() {
   pushStyle();
   
-  // Panel principal del HUD
   fill(15, 10, 35, 200);
   noStroke();
   rectMode(CORNER);
-  rect(20, 20, 280, 120, 12);
+  rect(20, 20, 280, 140, 12);
   
-  // Borde brillante
   noFill();
   strokeWeight(2);
-  stroke(100, 150, 255, 150);
-  rect(20, 20, 280, 120, 12);
+  color bordeColor = obtenerTinteJefeNivel();
+  stroke(red(bordeColor), green(bordeColor), blue(bordeColor), 150);
+  rect(20, 20, 280, 140, 12);
   
-  // Título
-  fill(150, 200, 255);
+  fill(red(bordeColor), green(bordeColor), blue(bordeColor));
   textAlign(LEFT);
   textSize(24);
-  text("⚔ JEFE FINAL", 40, 50);
+  text("⚔ JEFE NIVEL " + nivelActual, 40, 50);
   
-  // Estado de disparo
   textSize(16);
   if (jefeBulletActive) {
     fill(255, 100, 100);
@@ -453,37 +435,182 @@ void dibujarHUDJefe() {
     text("● LISTO", 40, 80);
   }
   
-  // Instrucciones
   fill(200, 220, 255);
   textSize(14);
   text("ESPACIO - Disparar", 40, 105);
   text("Elimina al jefe!", 40, 125);
+  text("Puntaje: " + (scoreTotalAcumulado + score), 40, 145);
   
   popStyle();
 }
 
 void dibujarMenuJefe() {
-  fill(0, 0, 0, 180);
+  fill(0, 0, 0, 200);
   rectMode(CORNER);
   noStroke();
   rect(0, 0, width, height);
-
-  fill(255);
-  textAlign(CENTER, CENTER);
-  textSize(48);
+  
+  float tiempo = millis() * 0.001;
+  
+  // Estrellas animadas
+  pushStyle();
+  for (int i = 0; i < 80; i++) {
+    float x = (width * 0.2 + sin(tiempo * (i * 0.1) + i) * width * 0.6) % width;
+    float y = (height * 0.2 + cos(tiempo * (i * 0.08) + i) * height * 0.6) % height;
+    float brillo = 150 + sin(tiempo * 10 + i) * 105;
+    float tam = 2 + sin(tiempo * 5 + i) * 1;
+    
+    noStroke();
+    fill(255, brillo);
+    ellipse(x, y, tam, tam);
+  }
+  popStyle();
+  
+  // Portal giratorio
+  pushStyle();
+  pushMatrix();
+  translate(width / 2, height / 2);
+  rotate(tiempo * 0.5);
+  
+  noFill();
+  colorMode(HSB, 360, 100, 100);
+  for (int i = 0; i < 5; i++) {
+    strokeWeight(3);
+    float hue = (tiempo * 50 + i * 30) % 360;
+    stroke(hue, 80, 90, 80);
+    ellipse(0, 0, 300 + i * 50, 300 + i * 50);
+  }
+  colorMode(RGB, 255);
+  popMatrix();
+  popStyle();
   
   if (jefeGameWon) {
-    text("¡JEFE DERROTADO!", width/2, height/2 - 40);
+    // Ovnis celebrando
+    pushStyle();
+    for (int i = 0; i < 3; i++) {
+      float ox = width * (0.15 + i * 0.35) + sin(tiempo * 2 + i) * 40;
+      float oy = height * 0.2 + cos(tiempo * 1.5 + i) * 25;
+      dibujarOvniJefe(ox, oy, 35, color(100 + i * 50, 200, 255 - i * 50));
+    }
+    popStyle();
+    
+    // Título de victoria
+    pushStyle();
+    textFont(fuenteMenu);
+    fill(255, 215, 0, 100);
+    textAlign(CENTER);
+    textSize(70);
+    text("¡JEFE DERROTADO!", width/2 + 4, height/2 - 80 + 4);
+    
+    fill(255, 215, 0);
+    textSize(68);
+    text("¡JEFE DERROTADO!", width/2, height/2 - 80);
+    
+    // Estrellas decorativas
+    for (int i = 0; i < 6; i++) {
+      float angulo = (TWO_PI / 6) * i + tiempo;
+      float dist = 180 + sin(tiempo * 3) * 20;
+      float sx = width/2 + cos(angulo) * dist;
+      float sy = height/2 - 80 + sin(angulo) * dist;
+      
+      pushMatrix();
+      translate(sx, sy);
+      rotate(tiempo * 2 + i);
+      
+      fill(255, 215, 0, 200);
+      noStroke();
+      beginShape();
+      for (int j = 0; j < 10; j++) {
+        float a = (TWO_PI / 10) * j;
+        float r = (j % 2 == 0) ? 12 : 5;
+        vertex(cos(a) * r, sin(a) * r);
+      }
+      endShape(CLOSE);
+      popMatrix();
+    }
+    
+    fill(200, 255, 200);
+    textSize(36);
+    text("Nivel " + nivelActual + " completado", width/2, height/2 - 10);
+    
+    fill(255);
+    textSize(32);
+    text("Puntaje: " + (scoreTotalAcumulado + score), width/2, height/2 + 30);
+    
+    float brillo = 200 + sin(tiempo * 5) * 55;
+    fill(100, 255, 150, brillo);
+    textSize(32);
+    text("Presiona 'N' para SIGUIENTE NIVEL", width/2, height/2 + 90);
+    
+    fill(200, 220, 255, brillo);
     textSize(24);
-    text("¡HAS COMPLETADO EL JUEGO!", width/2, height/2 + 20);
+    text("Presiona 'R' para volver al menú", width/2, height/2 + 130);
+    popStyle();
+    
   } else {
+    pushStyle();
+    textFont(fuenteMenu);
+    
+    fill(255, 100, 100, 100);
+    textAlign(CENTER);
+    textSize(54);
+    text("DERROTA", width/2 + 4, height/2 - 40 + 4);
+    
+    fill(255, 100, 100);
+    textSize(52);
     text("DERROTA", width/2, height/2 - 40);
-    textSize(24);
+    
+    fill(255);
+    textSize(28);
     text("El jefe te ha vencido", width/2, height/2 + 20);
+    
+    float brillo = 200 + sin(tiempo * 5) * 55;
+    fill(255, 180, 100, brillo);
+    textSize(24);
+    text("Presiona 'R' para volver al menú", width/2, height/2 + 80);
+    popStyle();
+  }
+}
+
+void dibujarOvniJefe(float x, float y, float tam, color col) {
+  pushMatrix();
+  translate(x, y);
+  
+  float tiempo = millis() * 0.001;
+  rotate(sin(tiempo * 2) * 0.1);
+  
+  noStroke();
+  fill(col, 180);
+  ellipse(0, -tam * 0.3, tam * 0.8, tam * 0.6);
+  
+  fill(col, 220);
+  ellipse(0, -tam * 0.3, tam * 0.5, tam * 0.4);
+  
+  fill(col);
+  ellipse(0, 0, tam * 1.5, tam * 0.5);
+  
+  fill(red(col) + 30, green(col) + 30, blue(col) + 30);
+  ellipse(0, 0, tam * 1.2, tam * 0.4);
+  
+  for (int i = 0; i < 5; i++) {
+    float angulo = (TWO_PI / 5) * i;
+    float lx = cos(angulo + tiempo * 2) * tam * 0.5;
+    float ly = tam * 0.2;
+    
+    fill(255, 255, 100, 200);
+    ellipse(lx, ly, 5, 5);
+    
+    noStroke();
+    fill(255, 255, 150, 40);
+    beginShape();
+    vertex(lx - 2, ly);
+    vertex(lx + 2, ly);
+    vertex(lx + 6, ly + 40);
+    vertex(lx - 6, ly + 40);
+    endShape(CLOSE);
   }
   
-  textSize(18);
-  text("Presiona 'R' para volver al menú", width/2, height/2 + 80);
+  popMatrix();
 }
 
 void manejarInputJefe() {
@@ -494,6 +621,10 @@ void manejarInputJefe() {
     jefeEnergyWaves.clear();
     jefeBulletAnimFrame = 0;
     jefeBulletRotation = 0;
+  }
+  
+  if ((key == 'n' || key == 'N') && jefeGameEnded && jefeGameWon) {
+    siguienteNivel();
   }
   
   if ((key == 'r' || key == 'R') && jefeGameEnded) {
@@ -523,12 +654,8 @@ PImage[] jefeLoadEnemyFrames() {
   return frames.toArray(new PImage[frames.size()]);
 }
 
-// ✅ CLASE ESTRELLA DE FONDO
 class JefeBackgroundStar {
-  float x, y;
-  float brillo;
-  float velocidadBrillo;
-  float tamaño;
+  float x, y, brillo, velocidadBrillo, tamaño;
   
   JefeBackgroundStar() {
     x = random(width);
@@ -540,16 +667,13 @@ class JefeBackgroundStar {
   
   void update() {
     brillo += velocidadBrillo;
-    if (brillo > 255 || brillo < 100) {
-      velocidadBrillo *= -1;
-    }
+    if (brillo > 255 || brillo < 100) velocidadBrillo *= -1;
   }
   
   void display() {
     noStroke();
     fill(255, brillo);
     ellipse(x, y, tamaño, tamaño);
-    
     if (tamaño > 2) {
       fill(255, brillo * 0.3);
       ellipse(x, y, tamaño * 2, tamaño * 2);
@@ -557,14 +681,8 @@ class JefeBackgroundStar {
   }
 }
 
-// ✅ CLASE EXPLOSIÓN DE ESTRELLA
 class JefeExplosionStar {
-  float x, y;
-  float vx, vy;
-  float vida;
-  float tamaño;
-  float rotacion;
-  float velocidadRotacion;
+  float x, y, vx, vy, vida, tamaño, rotacion, velocidadRotacion;
   color col;
   
   JefeExplosionStar(float startX, float startY) {
@@ -579,7 +697,6 @@ class JefeExplosionStar {
     rotacion = random(TWO_PI);
     velocidadRotacion = random(-0.3, 0.3);
     
-    // Colores variados
     int tipo = int(random(4));
     if (tipo == 0) col = color(255, 215, 0);
     else if (tipo == 1) col = color(255, 100, 255);
@@ -590,7 +707,7 @@ class JefeExplosionStar {
   void update() {
     x += vx;
     y += vy;
-    vy += 0.3; // Gravedad
+    vy += 0.3;
     vida -= 8;
     rotacion += velocidadRotacion;
     tamaño *= 0.95;
@@ -602,16 +719,13 @@ class JefeExplosionStar {
     translate(x, y);
     rotate(rotacion);
     
-    // Aura
     noStroke();
     fill(col, vida * 0.4);
     dibujarEstrellaExplosion(0, 0, tamaño * 1.5);
     
-    // Estrella
     fill(col, vida);
     dibujarEstrellaExplosion(0, 0, tamaño);
     
-    // Núcleo
     fill(255, vida);
     ellipse(0, 0, tamaño * 0.4, tamaño * 0.4);
     
@@ -634,11 +748,8 @@ class JefeExplosionStar {
   }
 }
 
-// CLASE ONDA DE ENERGÍA
 class JefeEnergyWave {
-  float x, y;
-  float size;
-  float alpha;
+  float x, y, size, alpha;
   
   JefeEnergyWave(float x, float y) {
     this.x = x;

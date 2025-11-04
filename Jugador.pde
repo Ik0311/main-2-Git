@@ -1,5 +1,5 @@
 // ============================================
-// JUGADOR.PDE - Personaje con sprites animados + hitbox ampliada
+// JUGADOR.PDE 
 // ============================================
 
 // Sprites del personaje
@@ -11,9 +11,8 @@ int frameDelay = 5;
 
 ArrayList<ParticulaEstrella> estrellasMovimiento;
 
-// ✅ TAMAÑO DEL JUGADOR
 float tamañoJugador = 210; 
-float radioColisionJugador = tamañoJugador * 0.70; // 🔧 HITBOX (ajústalo a gusto)
+float radioColisionJugador = tamañoJugador * 0.2; // hitbox
 
 void cargarJugador() {
   spritesIdle = new ArrayList<PImage>();
@@ -123,10 +122,7 @@ void dibujarJugador() {
     ellipse(0, 0, 40, 40);
   }
 
-  // 🔧 Dibujar la hitbox (para depuración)
-  // noFill();
-  // stroke(255, 100, 100, 120);
-  // ellipse(0, 0, radioColisionJugador * 2, radioColisionJugador * 2);
+ 
 
   popMatrix();
   popStyle();
@@ -186,9 +182,7 @@ boolean colisionaCon(float x, float y, float r) {
   return dist(px, py, x, y) < radioColisionJugador + r;
 }
 
-// ============================================
-// CLASE DE PARTÍCULAS DE MOVIMIENTO
-// ============================================
+
 class ParticulaEstrella {
   float x, y, vx, vy, vida, tamaño, rotacion, velocidadRotacion;
   color col;
